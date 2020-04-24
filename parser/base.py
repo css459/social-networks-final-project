@@ -1,6 +1,7 @@
 import json
-import requests
 from abc import ABC, abstractmethod
+
+import requests
 
 
 class Parser(ABC):
@@ -93,7 +94,9 @@ class Parser(ABC):
 
         :return: Dictionary of JSON from `self.url`
         """
-        output = requests.get(self.url).text
+        headers = requests.utils.default_headers()
+        headers.update({'User-Agent': 'Mozilla/5.0', })
+        output = requests.get(self.url, headers=headers).text
         return json.loads(output)
 
     def to_json(self):
