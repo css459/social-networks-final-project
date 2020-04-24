@@ -15,7 +15,7 @@ class Parser(ABC):
     Organization.
     """
 
-    def __init__(self, url):
+    def __init__(self, url, in_links=None, in_link_relation=None):
         """
         Creates a parser instance tied to a JSON
         file at the specified URL. The instance will
@@ -25,25 +25,38 @@ class Parser(ABC):
 
         :param url:              A Crunchbase URL of an expected
                                  type (e.g.: Org, Investor)
+        :param in_links:         An optional list of URLs which
+                                 directly reference this URL
+        :param in_link_relation: An optional list of objects which
+                                 specify how each in-link relates to
+                                 this URL.
         :except ParserException: Thrown when the JSON at the
                                  given URL is unable to be
                                  successfully parsed.
         """
         assert url is not None
+
         self.url = url
+        self.in_links = in_links
+        self.in_link_relation = in_link_relation
+
+        # Download the JSON at URL
         self._raw = self._download()
 
-    @property
-    @abstractmethod
-    def uuid(self):
         """
         The Crunchbase UUID of the subclass
         entity. This is required to be set by
-        the end of initialization.
-
-        :return: String
+        `_parse()` by the end of initialization.
         """
-        raise NotImplementedError
+        self.uuid = None
+
+        # Parse the downloaded JSON at `self._raw`
+        self._parse()
+
+        # Stores the out-links of this entity
+        self.out_links = self._make_out_links()
+
+        assert self.uuid is not None
 
     @abstractmethod
     def _parse(self):
@@ -59,6 +72,17 @@ class Parser(ABC):
         :except ParserException: Thrown when the JSON at the
                                  given URL is unable to be
                                  successfully parsed.
+        """
+        raise NotImplementedError
+
+    @abstractmethod
+    def _make_out_links(self):
+        """
+        Computes and returns the out-links
+        of this URL as a list of URLs it
+        directly references.
+
+        :return: List of URLs as Strings
         """
         raise NotImplementedError
 
