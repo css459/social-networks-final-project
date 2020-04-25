@@ -15,6 +15,17 @@ def get_uuid(d):
     return d['properties']['identifier']['uuid']
 
 
+def get_entity_def_id(d):
+    """
+        Returns the Entity ID of the URL
+        from its JSON as Dictionary.
+
+        :param d:   JSON data as Dictionary
+        :return:    Entity ID as String
+        """
+    return d['properties']['identifier']['entity_def_id']
+
+
 def dict_generator(d, pre=None):
     """
     Traverses a full Dictionary object and returns
@@ -101,6 +112,18 @@ def get_uuid_out_links(d, this_uuid):
     return uuids, counts
 
 
+# TODO
+def get_http_from_uuid(uuid, entity_def_id):
+    """
+    Form a URL from a UUID and Entity ID of UUID.
+
+    :param uuid:            Input UUID
+    :param entity_def_id:   Entity ID tag of the UUID
+    :return:                URL as String
+    """
+    raise NotImplementedError
+
+
 # TODO: Implement function to convert tagged UUIDs to Crunchbase URLS
 def get_http_out_links(d, this_uuid):
     """
@@ -115,7 +138,7 @@ def get_http_out_links(d, this_uuid):
                         a list of occurrences for each URL.
     """
     uuids, counts = get_uuid_out_links(d, this_uuid)
-    # ...
+    # ... get_http_from_uuid(...) ...
     raise NotImplementedError
 
 
@@ -139,5 +162,25 @@ def get_numeric_values(d, ignore_keys=None):
     for g in dict_generator(d):
         # Ignore paths 'g' in 'd' that contain ignored keys
         if len([e for e in g if e in ignore_keys]) == 0 and _is_num(g[-1]):
+            acc.append(g)
+    return acc
+
+
+def find_all_by_key(d, key, ignore_keys=None):
+    """
+    Finds all paths containing the key or value, `key`
+    :param d:           Input Dictionary
+    :param key:         Query value
+    :param ignore_keys: Optional list of keys to ignore. Ignores
+                        the entire path to value.
+    :return:            Paths as 2D list.
+    """
+    if ignore_keys is None:
+        ignore_keys = default_ignore_keys
+
+    acc = []
+    for g in dict_generator(d):
+        # Ignore paths 'g' in 'd' that contain ignored keys
+        if len([e for e in g if e in ignore_keys]) == 0 and key in g:
             acc.append(g)
     return acc

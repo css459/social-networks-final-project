@@ -3,7 +3,7 @@ from abc import ABC, abstractmethod
 
 import requests
 
-from parser.util import get_uuid
+from parser.util import get_uuid, get_entity_def_id
 
 
 class Parser(ABC):
@@ -53,10 +53,13 @@ class Parser(ABC):
 
         """
         The Crunchbase UUID of the subclass
-        entity. This is required to be set by
-        `_parse()` by the end of initialization.
+        entity
         """
         self.uuid = get_uuid(self._raw)
+        self.entity_def_id = get_entity_def_id(self._raw)
+
+        # Parse all defined entities
+        self._parse()
 
         # Stores the out-links of this entity
         self.out_links = self._make_out_links()
