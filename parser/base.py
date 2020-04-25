@@ -3,6 +3,8 @@ from abc import ABC, abstractmethod
 
 import requests
 
+from parser.util import get_uuid
+
 
 class Parser(ABC):
     """
@@ -41,6 +43,11 @@ class Parser(ABC):
         self.in_links = in_links
         self.in_link_relation = in_link_relation
 
+        if self.in_links:
+            self.num_in_links = len(self.in_links)
+        else:
+            self.num_in_links = 0
+
         # Download the JSON at URL
         self._raw = self._download()
 
@@ -49,15 +56,15 @@ class Parser(ABC):
         entity. This is required to be set by
         `_parse()` by the end of initialization.
         """
-        self.uuid = None
-
-        # Parse the downloaded JSON at `self._raw`
-        self._parse()
+        self.uuid = get_uuid(self._raw)
 
         # Stores the out-links of this entity
         self.out_links = self._make_out_links()
 
-        assert self.uuid is not None
+        if self.out_links:
+            self.num_out_links = len(self.out_links)
+        else:
+            self.num_out_links = 0
 
     @abstractmethod
     def _parse(self):

@@ -4,29 +4,29 @@ for parsers.
 """
 
 
-def get_uuid(json_data):
+def get_uuid(d):
     """
     Returns the UUID of the URL
     from its JSON as Dictionary.
 
-    :param json_data:   JSON data as Dictionary
-    :return:            UUID as String
+    :param d:   JSON data as Dictionary
+    :return:    UUID as String
     """
-    return json_data['properties']['identifier']['uuid']
+    return d['properties']['identifier']['uuid']
 
 
-def dict_generator(indict, pre=None):
+def dict_generator(d, pre=None):
     """
     Traverses a full Dictionary object and returns
     a list of all paths to all keys. This is a 2D list.
 
-    :param indict:  Input Dictionary
-    :param pre:     Accumulator for recursive traversal
-    :return:        2D list of traversals with values
+    :param d:   Input Dictionary
+    :param pre: Accumulator for recursive traversal
+    :return:    2D list of traversals with values
     """
     pre = pre[:] if pre else []
-    if isinstance(indict, dict):
-        for key, value in indict.items():
+    if isinstance(d, dict):
+        for key, value in d.items():
             if isinstance(value, dict):
                 for d in dict_generator(value, pre + [key]):
                     yield d
@@ -37,7 +37,7 @@ def dict_generator(indict, pre=None):
             else:
                 yield pre + [key, value]
     else:
-        yield pre + [indict]
+        yield pre + [d]
 
 
 """
@@ -99,6 +99,24 @@ def get_uuid_out_links(d, this_uuid):
             counts[uuid] += 1
 
     return uuids, counts
+
+
+# TODO: Implement function to convert tagged UUIDs to Crunchbase URLS
+def get_http_out_links(d, this_uuid):
+    """
+    Calls `get_uuid_out_links` and parses tagged UUIDs
+    to Crunchbase URLs which point to a JSON file representing
+    that UUID. Passes through the list of occurrences for each
+    UUID as a list of occurrences of the same length.
+
+    :param d:           Input Dictionary
+    :param this_uuid:   The UUID representing this Dictionary
+    :return:            A List of URLs and
+                        a list of occurrences for each URL.
+    """
+    uuids, counts = get_uuid_out_links(d, this_uuid)
+    # ...
+    raise NotImplementedError
 
 
 def get_numeric_values(d, ignore_keys=None):
