@@ -23,7 +23,10 @@ def get_entity_def_id(d):
         :param d:   JSON data as Dictionary
         :return:    Entity ID as String
         """
-    return d['properties']['identifier']['entity_def_id']
+    e = d['properties']['identifier']['entity_def_id']
+    if '_identifier' in e:
+        e = str(e).replace('_identifier', '')
+    return e
 
 
 def dict_generator(d, pre=None):

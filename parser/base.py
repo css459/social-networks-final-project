@@ -1,9 +1,23 @@
 import json
+import os
 from abc import ABC, abstractmethod
 
 import requests
 
 from parser.util import get_uuid, get_entity_def_id, get_http_out_links
+
+"""
+Specifies the relative path of a folder in which
+to save .JSON files of Parser's using the `to_file()`
+command.
+The structure of this directory is:
+    data/
+        <entity_id>/
+            <uuid>.json
+            ...
+        ...
+"""
+DATA_DIR = "data/"
 
 
 class Parser(ABC):
@@ -18,13 +32,17 @@ class Parser(ABC):
     Organization.
     """
 
-    def __init__(self, url, in_links=None, in_link_relation=None):
+    def __init__(self, url=None, in_links=None, in_link_relation=None,
+                 uuid=None, entity_def_id=None, data_path=None):
         """
         Creates a parser instance tied to a JSON
         file at the specified URL. The instance will
         provide an interface to this JSON file. The file
         will be parsed by the end of initialization with
         all required class properties present.
+
+        If `url` is None, then `uuid` and `entity_def_id` must
+        be provided instead. The parser will attempt to load from file.
 
         :param url:              A Crunchbase URL of an expected
                                  type (e.g.: Org, Investor)
@@ -33,11 +51,24 @@ class Parser(ABC):
         :param in_link_relation: An optional list of objects which
                                  specify how each in-link relates to
                                  this URL.
+        :param uuid:             Optional UUID to load from file
+        :param entity_def_id:    Optional entity_def_id to load from file
+        :param data_path:        Optional data path override to load from file.
+                                 Defaults to `DATA_DIR`
         :except ParserException: Thrown when the JSON at the
                                  given URL is unable to be
                                  successfully parsed.
         """
-        assert url is not None
+        assert bool(url is not None) != bool(uuid and entity_def_id)
+
+        # Attempt to load from file instead of parsing
+        if uuid and entity_def_id:
+            if not data_path:
+                data_path = DATA_DIR
+            self.uuid = uuid
+            self.entity_def_id = entity_def_id
+            self.from_file(data_path=data_path)
+            return
 
         self.url = url
         self.in_links = in_links
@@ -123,6 +154,40 @@ class Parser(ABC):
         :return: Class as JSON String
         """
         return json.dumps(self.__dict__, indent=4, sort_keys=True)
+
+    def to_file(self, data_path=DATA_DIR):
+        """
+        Saves the JSON representation of the parser
+        to disk at `data_path`. If `data_path` doesn't
+        exist, it will be created. If the entity ID subdirectory
+        doesn't exist it will also be created. If the JSON file
+        for this Parser already exists, it will be overwritten.
+
+        :param data_path:   Path to data folder
+        :return:            `None`
+        """
+        j = self.to_json()
+        file_name = str(self.uuid) + '.json'
+        p = os.path.join(str(data_path), str(self.entity_def_id))
+        if not os.path.exists(p):
+            os.makedirs(p)
+
+        p = os.path.join(p, file_name)
+        with open(p, 'w') as fp:
+            fp.write(j + '\n')
+
+    def from_file(self, data_path=DATA_DIR):
+        """
+        Loads the Parser class from its JSON file
+        on disk.
+
+        :param data_path:   Path to data folder
+        :return:            `None`
+        """
+        file_name = str(self.uuid) + '.json'
+        p = os.path.join(str(data_path), str(self.entity_def_id), file_name)
+        with open(p, 'r') as fp:
+            self.__dict__ = json.load(fp)
 
 
 class ParserException(Exception):

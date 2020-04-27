@@ -7,12 +7,15 @@ from parser.base import Parser, ParserException
 
 class OrganizationInvestorParser(Parser):
 
-    def __init__(self, url, in_links=None, in_link_relation=None):
+    # Accepts all the arguments of the base class by default:
+    # (url=None, in_links=None, in_link_relation=None,
+    #  uuid=None, entity_def_id=None, data_path=None)
+    def __init__(self, **kwargs):
 
         # The base class will handle all downloading, parsing, and
         # out-link generation so long as all required methods have
         # been implemented.
-        super().__init__(url, in_links, in_link_relation)
+        super().__init__(**kwargs)
 
         # Input must be an organization, otherwise
         # the parse doesn't make sense
@@ -94,6 +97,7 @@ class OrganizationInvestorParser(Parser):
     #
 
     def _parse(self):
+
         # _parse() must define all data to track as class properties
         # and raise ParserException if the raw data cannot be properly parsed
         # KeyError automatically raises ParserException instead in the base class
