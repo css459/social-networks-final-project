@@ -112,19 +112,43 @@ def get_uuid_out_links(d, this_uuid):
     return uuids, counts
 
 
-# TODO
+# TODO: Other mappings for UUID --> URL
 def get_http_from_uuid(uuid, entity_def_id):
     """
     Form a URL from a UUID and Entity ID of UUID.
+    If a UUID and entity ID is provided for which
+    there is no known URL, print a warning and return
+    `None`
 
     :param uuid:            Input UUID
     :param entity_def_id:   Entity ID tag of the UUID
-    :return:                URL as String
+    :return:                URL as String or `None`
     """
-    raise NotImplementedError
+    # Maps entity_def_id --> URL format
+    # The value string is split where the UUID goes
+    url_map = {
+        'organization': ["https://www.crunchbase.com/v4/data/entities/organizations/",
+                         "?field_ids=%5B%22identifier" +
+                         "%22,%22layout_id%22,%22facet_ids%22,%22title%22,%22short_description" +
+                         "%22,%22is_locked%22%5D&layout_mode=view"],
+        'person': 'TODO',
+        'founder': 'TODO',
+        'funding_round': 'TODO',
+        'location': 'TODO',
+    }
+
+    # Some entity_ids may have the postfix "_identifier"
+    # For the purpose of this converter, remove it
+    entity_def_id = str(entity_def_id).replace('_identifier', '')
+
+    try:
+        [u1, u2] = url_map[entity_def_id]
+        return u1 + str(uuid) + u2
+    except (KeyError, ValueError):
+        print('[ WRN ] No known URL for type', entity_def_id, 'UUID:', uuid)
+        return None
 
 
-# TODO: Implement function to convert tagged UUIDs to Crunchbase URLS
 def get_http_out_links(d, this_uuid):
     """
     Calls `get_uuid_out_links` and parses tagged UUIDs
@@ -137,9 +161,21 @@ def get_http_out_links(d, this_uuid):
     :return:            A List of URLs and
                         a list of occurrences for each URL.
     """
-    uuids, counts = get_uuid_out_links(d, this_uuid)
-    # ... get_http_from_uuid(...) ...
-    raise NotImplementedError
+    uuids, _ = get_uuid_out_links(d, this_uuid)
+
+    # Get only a singular key for each UUID
+    # if a UUID only has 'identifier', then
+    # ignore that UUID altogether
+    tmp = {}
+    for (k, v) in uuids.items():
+        if 'identifier' in v:
+            v = v.remove('identifier')
+        if v:
+            tmp[k] = v[0]
+    uuids = tmp
+
+    return list(filter(None, [get_http_from_uuid(u, i)
+                              for (u, i) in uuids.items()]))
 
 
 def get_numeric_values(d, ignore_keys=None):

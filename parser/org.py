@@ -94,41 +94,40 @@ class OrganizationInvestorParser(Parser):
     #
 
     def _parse(self):
-
         # _parse() must define all data to track as class properties
         # and raise ParserException if the raw data cannot be properly parsed
-        try:
-            self.name = OrganizationInvestorParser._get_name(self._raw)
-            self.advisor_uuids = OrganizationInvestorParser._get_advisor_uuids(self._raw)
-            self.investment_uuids = OrganizationInvestorParser._get_investment_uuids(self._raw)
-            self.num_funds = OrganizationInvestorParser._get_num_funds(self._raw)
-            self.num_funding_rounds = OrganizationInvestorParser._get_num_funding_rounds(self._raw)
-            self.num_exits = OrganizationInvestorParser._get_num_exits(self._raw)
-            self.num_news_article_features = OrganizationInvestorParser._get_num_news_article_features(self._raw)
-            self.num_investments = OrganizationInvestorParser._get_num_investments(self._raw)
-            self.num_technologies_used = OrganizationInvestorParser._get_num_technologies_used(self._raw)
-            self.num_advisor_positions = OrganizationInvestorParser._get_num_advisor_positions(self._raw)
+        # KeyError automatically raises ParserException instead in the base class
+        self.name = OrganizationInvestorParser._get_name(self._raw)
+        self.advisor_uuids = OrganizationInvestorParser._get_advisor_uuids(self._raw)
+        self.investment_uuids = OrganizationInvestorParser._get_investment_uuids(self._raw)
+        self.num_funds = OrganizationInvestorParser._get_num_funds(self._raw)
+        self.num_funding_rounds = OrganizationInvestorParser._get_num_funding_rounds(self._raw)
+        self.num_exits = OrganizationInvestorParser._get_num_exits(self._raw)
+        self.num_news_article_features = OrganizationInvestorParser._get_num_news_article_features(self._raw)
+        self.num_investments = OrganizationInvestorParser._get_num_investments(self._raw)
+        self.num_technologies_used = OrganizationInvestorParser._get_num_technologies_used(self._raw)
+        self.num_advisor_positions = OrganizationInvestorParser._get_num_advisor_positions(self._raw)
 
-            if not self.advisor_uuids and self.num_advisor_positions > 0:
-                raise ParserException("Could not find advisor IDs when known number of advisors is "
-                                      + str(self.num_advisor_positions))
+        if not self.advisor_uuids and self.num_advisor_positions > 0:
+            raise ParserException("Could not find advisor IDs when known number of advisors is "
+                                  + str(self.num_advisor_positions))
 
-            if not self.investment_uuids and self.num_investments > 0:
-                raise ParserException("Could not find investment IDs when known number of investments is "
-                                      + str(self.num_advisor_positions))
-        except KeyError as e:
-            raise ParserException(e)
+        if not self.investment_uuids and self.num_investments > 0:
+            raise ParserException("Could not find investment IDs when known number of investments is "
+                                  + str(self.num_advisor_positions))
 
-    # TODO: See parser.util.get_http_from_uuid
+    # While this function is provided by the base class,
+    # we can override it to exhibit custom behavior, ensuring
+    # the output type remains consistent
     def _make_out_links(self):
-        return []  # REMOVE
-
         # Form from investor and advisor UUIDs
         acc = []
-        for u in self.advisor_uuids:
-            http = util.get_http_from_uuid(u, 'person')
-            if http:
-                acc.append(http)
+
+        # TODO: `Person` URL needs implementing in `get_http_from_uuid`
+        # for u in self.advisor_uuids:
+        #     http = util.get_http_from_uuid(u, 'person')
+        #     if http:
+        #         acc.append(http)
         for u in self.investment_uuids:
             http = util.get_http_from_uuid(u, 'organization')
             if http:

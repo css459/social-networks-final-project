@@ -3,7 +3,7 @@ from abc import ABC, abstractmethod
 
 import requests
 
-from parser.util import get_uuid, get_entity_def_id
+from parser.util import get_uuid, get_entity_def_id, get_http_out_links
 
 
 class Parser(ABC):
@@ -59,7 +59,12 @@ class Parser(ABC):
         self.entity_def_id = get_entity_def_id(self._raw)
 
         # Parse all defined entities
-        self._parse()
+        try:
+            self._parse()
+        except KeyError as e:
+            raise ParserException(e)
+        except ParserException as e:
+            raise e
 
         # Stores the out-links of this entity
         self.out_links = self._make_out_links()
@@ -86,7 +91,6 @@ class Parser(ABC):
         """
         raise NotImplementedError
 
-    @abstractmethod
     def _make_out_links(self):
         """
         Computes and returns the out-links
@@ -95,7 +99,7 @@ class Parser(ABC):
 
         :return: List of URLs as Strings
         """
-        raise NotImplementedError
+        return get_http_out_links(self._raw, self.uuid)
 
     def _download(self):
         """
